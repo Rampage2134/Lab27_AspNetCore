@@ -4,51 +4,90 @@ using Microsoft.AspNetCore.Identity;
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-app.MapGet("/", () => "Привет от ИСП-234! Автор: Медведев, Соколов");
+// app.MapGet("/", () => "Привет от ИСП-234! Автор: Медведев, Соколов");
 
-app.MapGet("/about", () => "Это мой первый ASP.NET Core сервер");
+// app.MapGet("/about", () => "Это мой первый ASP.NET Core сервер");
 
-app.MapGet("/time", () => $"Время на сервере: {DateTime.Now}");
+// app.MapGet("/time", () => $"Время на сервере: {DateTime.Now}");
 
-app.MapGet("/hello/{time}", (string name) => $"Привет, {name}!");
+// app.MapGet("/hello/{time}", (string name) => $"Привет, {name}!");
 
-app.MapGet("/sum/{a}/{b}", (int a, int b) => $"Cумма: {a + b}");
+// app.MapGet("/sum/{a}/{b}", (int a, int b) => $"Cумма: {a + b}");
 
-app.MapGet("/student", () => new
+// app.MapGet("/student", () => new
+// {
+//     Name = "Иван Иванов",
+//     Group = "ИСП-234",
+//     Year = 3,
+//     IsActive = true
+// });
+
+// app.MapGet("/subjects", () => new[]
+// {
+//     "РПМ",
+//     "РМП",
+//     "ИСРПО",
+//     "СП"
+// });
+
+// app.MapGet("/product/{id}", (int id) => new Product(
+//     Id: id,
+//     Name: $"Товар #{id}",
+//     Price: id * 99.99m,
+//     InStock: id % 2 == 0
+// ));
+
+// app.Use(async (context, next) =>
+// {
+//     Console.WriteLine($"[LOG] {context.Request.Method} {context.Request.Path}");
+//     await next(context);
+//     Console.WriteLine($"[LOG] Ответ отправлен: {context.Response.StatusCode}");
+// });
+
+// app.Use(async (context, next) =>
+// {
+//     context.Response.Headers.Append("X-Powered-By", "ASP.NET Core Lab27");
+//     await next(context);
+// });
+
+app.Use(async (context, next) =>
 {
-    Name = "Иван Иванов",
+    var method = context.Request.Method;
+    var path = context.Request.Path;
+    Console.WriteLine($"-> {method} {path}");
+    await next(context);
+});
+
+app.MapGet("/", () => Results.Ok(new
+{
+    Message = "Добро пожаловать!",
+    Version = "1.0",
+    Time = DateTime.Now.ToString("HH:mm:ss")
+}));
+
+app.MapGet("/me", () => Results.Ok(new
+{
+    Name = "Иванов Иван",
     Group = "ИСП-234",
-    Year = 3,
-    IsActive = true
-});
+    Course = 3,
+    Skills = new[] { "C#", "HTML", "CSS", "JS", "ASP.NET" }
+}));
 
-app.MapGet("/subjects", () => new[]
+app.MapGet("/calc/{a}/{b}", (double a, double b) => Results.Ok(new
 {
-    "РПМ",
-    "РМП",
-    "ИСРПО",
-    "СП"
-});
+    A = a,
+    B = b,
+    Sum = a + b,
+    Diff = a - b,
+    Mul = a * b,
+    Div = b != 0 ? a / b : 0
+}));
 
-app.MapGet("/product/{id}", (int id) => new Product(
-    Id: id,
-    Name: $"Товар #{id}",
-    Price: id * 99.99m,
-    InStock: id % 2 == 0
-));
-
-app.Use(async (context, next) =>
+app.MapFallback(() => Results.NotFound(new
 {
-    Console.WriteLine($"[LOG] {context.Request.Method} {context.Request.Path}");
-    await next(context);
-    Console.WriteLine($"[LOG] Ответ отправлен: {context.Response.StatusCode}");
-});
-
-app.Use(async (context, next) =>
-{
-    context.Response.Headers.Append("X-Powered-By", "ASP.NET Core Lab27");
-    await next(context);
-});
+    Error = "Маршрут не найден",
+    Code = 404
+}));
 
 app.Run();
 
