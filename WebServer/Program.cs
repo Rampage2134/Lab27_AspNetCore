@@ -37,6 +37,19 @@ app.MapGet("/product/{id}", (int id) => new Product(
     InStock: id % 2 == 0
 ));
 
+app.Use(async (context, next) =>
+{
+    Console.WriteLine($"[LOG] {context.Request.Method} {context.Request.Path}");
+    await next(context);
+    Console.WriteLine($"[LOG] Ответ отправлен: {context.Response.StatusCode}");
+});
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Powered-By", "ASP.NET Core Lab27");
+    await next(context);
+});
+
 app.Run();
 
 record Product(int Id, string Name, decimal Price, bool InStock);
